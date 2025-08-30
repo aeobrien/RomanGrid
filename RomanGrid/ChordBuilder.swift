@@ -2,6 +2,13 @@ import SwiftUI
 
 // MARK: - Enhanced Chord Builder for SectionGridEditor
 
+// Define display mode outside TrackEditor so it can be used elsewhere
+enum CellDisplayMode: String, CaseIterable {
+    case chord = "Chords"
+    case roman = "Roman"
+    case both = "Both"
+}
+
 struct ChordBuilderBar: View {
     @Binding var currentChord: Chord?
     @Binding var currentCell: Int
@@ -9,6 +16,7 @@ struct ChordBuilderBar: View {
     let onApply: (Chord, Bool) -> Void  // Bool indicates whether to advance
     let onDelete: () -> Void
     let onRest: () -> Void
+    @Binding var displayMode: CellDisplayMode
     
     // Stage 1 state
     @State private var selectedRoot: PitchClass? = nil
@@ -265,6 +273,15 @@ struct ChordBuilderBar: View {
             .controlSize(.small)
             
             Spacer()
+            
+            // Display mode picker
+            Picker("", selection: $displayMode) {
+                Text("Chords").tag(CellDisplayMode.chord)
+                Text("Roman").tag(CellDisplayMode.roman)
+                Text("Both").tag(CellDisplayMode.both)
+            }
+            .pickerStyle(.segmented)
+            .frame(width: 180)
         }
     }
     

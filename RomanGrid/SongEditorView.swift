@@ -6,9 +6,6 @@ struct SongEditorView: View {
     @Bindable var song: Song
     
     @State private var presentTapTempo = false
-    @State private var newBPName = "Verse"
-    @State private var newBars = 4
-    @State private var newResolution: GridResolution = .beat
     
     var body: some View {
         VStack {
@@ -41,43 +38,55 @@ struct SongEditorView: View {
                     }
                 }
                 
-                Section("Blueprints") {
-                    ForEach(song.blueprints) { bp in
-                        NavigationLink("\(bp.name) (\(bp.bars) bars, \(bp.resolution.label))") {
-                            SectionGridEditor(song: song, blueprint: bp)
-                        }
-                    }.onDelete { idx in
-                        idx.map { song.blueprints[$0] }.forEach(context.delete)
+                Section("Track Editor") {
+                    NavigationLink("Edit Track") {
+                        TrackEditor(song: song)
                     }
-                    VStack(alignment: .leading, spacing: 8) {
-                        HStack {
-                            TextField("New section name", text: $newBPName)
-                            HStack {
-                                Button(action: { if newBars > 1 { newBars -= 1 } }) {
-                                    Image(systemName: "minus.circle")
-                                }
-                                Text("\(newBars) bars")
-                                    .frame(minWidth: 60)
-                                Button(action: { if newBars < 128 { newBars += 1 } }) {
-                                    Image(systemName: "plus.circle")
+                    .buttonStyle(.borderedProminent)
+                    
+                    if !song.arrangement.isEmpty {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Track Overview")
+                                .font(.caption)
+                                .foregroundColor(.secondary)
+                            ForEach(song.arrangement) { section in
+                                if let blueprint = song.blueprints.first(where: { $0.id == section.blueprintID }) {
+                                    HStack {
+                                        Text(section.displayName)
+                                            .font(.caption)
+                                        Spacer()
+                                        Text("\(blueprint.bars) bars")
+                                            .font(.caption2)
+                                            .foregroundColor(.secondary)
+                                    }
                                 }
                             }
-                        }
-                        HStack {
-                            Picker("Grid", selection: $newResolution) {
-                                ForEach(GridResolution.allCases) { r in
-                                    Text(r.label).tag(r)
-                                }
-                            }.pickerStyle(.segmented)
-                            Button("Add Section") { addBlueprint() }
-                                .buttonStyle(.borderedProminent)
                         }
                     }
                 }
                 
-                Section("Arrangement") {
-                    NavigationLink("Open Arrangement") {
-                        ArrangementView(song: song)
+                Section("Section Library") {
+                    ForEach(song.blueprints) { bp in
+                        HStack {
+                            VStack(alignment: .leading) {
+                                Text(bp.name)
+                                Text("\(bp.bars) bars, \(bp.resolution.label)")
+                                    .font(.caption)
+                                    .foregroundColor(.secondary)
+                            }
+                            Spacer()
+                            Text("\(song.arrangement.filter { $0.blueprintID == bp.id }.count) uses")
+                                .font(.caption2)
+                                .foregroundColor(.secondary)
+                        }
+                    }.onDelete { idx in
+                        // Check if blueprint is used in arrangement
+                        let toDelete = idx.map { song.blueprints[$0] }
+                        for bp in toDelete {
+                            // Remove from arrangement first
+                            song.arrangement.removeAll { $0.blueprintID == bp.id }
+                        }
+                        idx.map { song.blueprints[$0] }.forEach(context.delete)
                     }
                 }
             }
@@ -86,11 +95,6 @@ struct SongEditorView: View {
         .sheet(isPresented: $presentTapTempo) {
             TapTempoView(bpm: $song.tempoBPM)
         }
-    }
-    
-    private func addBlueprint() {
-        let bp = SectionBlueprint(name: newBPName, bars: newBars, resolution: newResolution)
-        song.blueprints.append(bp)
     }
 }
 

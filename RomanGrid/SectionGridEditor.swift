@@ -20,12 +20,6 @@ struct SectionGridEditor: View {
     @State private var draggedCells: Set<Int> = []
     @State private var cellDisplayMode: CellDisplayMode = .chord
     
-    enum CellDisplayMode: String, CaseIterable {
-        case chord = "Chords"
-        case roman = "Roman"
-        case both = "Both"
-    }
-    
     var totalTicks: Int { blueprint.totalTicks(beatsPerBar: song.timeSig.beatsPerBar) }
     var cellsPerBar: Int { song.timeSig.beatsPerBar * blueprint.resolution.rawValue }
     
@@ -120,7 +114,8 @@ struct SectionGridEditor: View {
             },
             onRest: {
                 quickAddRest()
-            }
+            },
+            displayMode: $cellDisplayMode
         )
         .onAppear {
             // Load the chord from the first cell when view appears

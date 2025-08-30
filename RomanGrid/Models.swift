@@ -126,14 +126,18 @@ final class SectionInstance {
     var keyOverride: KeySignature?     // section modulation
     var lyrics: String                 // free text, not rhythm-locked
     var blueprintID: UUID              // reference to the source blueprint (by id)
+    var isLinked: Bool = true          // true = uses shared blueprint, false = has own copy
+    @Relationship(deleteRule: .cascade) var ownBlueprint: SectionBlueprint? // independent copy when unlinked
     
-    init(displayName: String, repeats: Int = 1, keyOverride: KeySignature? = nil, lyrics: String = "", blueprintID: UUID) {
+    init(displayName: String, repeats: Int = 1, keyOverride: KeySignature? = nil, lyrics: String = "", blueprintID: UUID, isLinked: Bool = true) {
         self.id = UUID()
         self.displayName = displayName
         self.repeats = repeats
         self.keyOverride = keyOverride
         self.lyrics = lyrics
         self.blueprintID = blueprintID
+        self.isLinked = isLinked
+        self.ownBlueprint = nil
     }
 }
 

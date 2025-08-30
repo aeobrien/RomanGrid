@@ -5,6 +5,49 @@
 	<key>logFormatVersion</key>
 	<integer>11</integer>
 	<key>logs</key>
-	<dict/>
+	<dict>
+		<key>DAB8B026-ADA1-4562-AB8B-469D3EB4CE32</key>
+		<dict>
+			<key>className</key>
+			<string>IDECommandLineBuildLog</string>
+			<key>documentTypeString</key>
+			<string>&lt;nil&gt;</string>
+			<key>domainType</key>
+			<string>Xcode.IDEActivityLogDomainType.BuildLog</string>
+			<key>fileName</key>
+			<string>DAB8B026-ADA1-4562-AB8B-469D3EB4CE32.xcactivitylog</string>
+			<key>hasPrimaryLog</key>
+			<true/>
+			<key>primaryObservable</key>
+			<dict>
+				<key>highLevelStatus</key>
+				<string>E</string>
+				<key>totalNumberOfAnalyzerIssues</key>
+				<integer>0</integer>
+				<key>totalNumberOfErrors</key>
+				<integer>1</integer>
+				<key>totalNumberOfTestFailures</key>
+				<integer>0</integer>
+				<key>totalNumberOfWarnings</key>
+				<integer>0</integer>
+			</dict>
+			<key>schemeIdentifier-containerName</key>
+			<string>RomanGrid project</string>
+			<key>schemeIdentifier-schemeName</key>
+			<string>RomanGrid</string>
+			<key>schemeIdentifier-sharedScheme</key>
+			<integer>1</integer>
+			<key>signature</key>
+			<string>Building project RomanGrid with scheme RomanGrid</string>
+			<key>timeStartedRecording</key>
+			<real>778252630.15211701</real>
+			<key>timeStoppedRecording</key>
+			<real>778252673.49021304</real>
+			<key>title</key>
+			<string>Building project RomanGrid with scheme RomanGrid</string>
+			<key>uniqueIdentifier</key>
+			<string>DAB8B026-ADA1-4562-AB8B-469D3EB4CE32</string>
+		</dict>
+	</dict>
 </dict>
 </plist>

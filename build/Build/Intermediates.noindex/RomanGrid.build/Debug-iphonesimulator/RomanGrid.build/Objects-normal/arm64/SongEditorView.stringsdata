@@ -7,7 +7,7 @@
         "key": "Details",
         "location": {
           "startingColumn": 25,
-          "startingLine": 16
+          "startingLine": 13
         }
       },
       {
@@ -15,23 +15,23 @@
         "key": "Key & Tempo",
         "location": {
           "startingColumn": 25,
-          "startingLine": 26
+          "startingLine": 23
         }
       },
       {
         "comment": "",
-        "key": "Blueprints",
+        "key": "Track Editor",
         "location": {
           "startingColumn": 25,
-          "startingLine": 44
+          "startingLine": 41
         }
       },
       {
         "comment": "",
-        "key": "Arrangement",
+        "key": "Section Library",
         "location": {
           "startingColumn": 25,
-          "startingLine": 78
+          "startingLine": 68
         }
       },
       {
@@ -39,7 +39,7 @@
         "key": "Title",
         "location": {
           "startingColumn": 31,
-          "startingLine": 17
+          "startingLine": 14
         }
       },
       {
@@ -47,7 +47,7 @@
         "key": "Artist",
         "location": {
           "startingColumn": 31,
-          "startingLine": 18
+          "startingLine": 15
         }
       },
       {
@@ -55,7 +55,7 @@
         "key": "Tags (comma-separated)",
         "location": {
           "startingColumn": 31,
-          "startingLine": 19
+          "startingLine": 16
         }
       },
       {
@@ -63,7 +63,7 @@
         "key": "Notes",
         "location": {
           "startingColumn": 31,
-          "startingLine": 23
+          "startingLine": 20
         }
       },
       {
@@ -71,7 +71,7 @@
         "key": "Capo: %lld",
         "location": {
           "startingColumn": 29,
-          "startingLine": 36
+          "startingLine": 33
         }
       },
       {
@@ -79,7 +79,7 @@
         "key": "View Mode",
         "location": {
           "startingColumn": 28,
-          "startingLine": 37
+          "startingLine": 34
         }
       },
       {
@@ -87,7 +87,7 @@
         "key": "Tap",
         "location": {
           "startingColumn": 32,
-          "startingLine": 33
+          "startingLine": 30
         }
       },
       {
@@ -95,55 +95,47 @@
         "key": "Tempo: %@ BPM",
         "location": {
           "startingColumn": 34,
-          "startingLine": 30
+          "startingLine": 27
         }
       },
       {
         "comment": "",
-        "key": "%@ (%lld bars, %@)",
+        "key": "Edit Track",
         "location": {
-          "startingColumn": 40,
-          "startingLine": 46
+          "startingColumn": 36,
+          "startingLine": 42
         }
       },
       {
         "comment": "",
-        "key": "New section name",
+        "key": "Track Overview",
         "location": {
-          "startingColumn": 39,
-          "startingLine": 54
+          "startingColumn": 34,
+          "startingLine": 49
         }
       },
       {
         "comment": "",
         "key": "%lld bars",
         "location": {
+          "startingColumn": 46,
+          "startingLine": 58
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld uses",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 78
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld bars, %@",
+        "location": {
           "startingColumn": 38,
-          "startingLine": 59
-        }
-      },
-      {
-        "comment": "",
-        "key": "Grid",
-        "location": {
-          "startingColumn": 36,
-          "startingLine": 67
-        }
-      },
-      {
-        "comment": "",
-        "key": "Add Section",
-        "location": {
-          "startingColumn": 36,
-          "startingLine": 72
-        }
-      },
-      {
-        "comment": "",
-        "key": "Open Arrangement",
-        "location": {
-          "startingColumn": 36,
-          "startingLine": 79
+          "startingLine": 73
         }
       },
       {
@@ -151,7 +143,7 @@
         "key": "Tonic",
         "location": {
           "startingColumn": 20,
-          "startingLine": 101
+          "startingLine": 105
         }
       },
       {
@@ -159,7 +151,7 @@
         "key": "Mode",
         "location": {
           "startingColumn": 20,
-          "startingLine": 109
+          "startingLine": 113
         }
       },
       {
@@ -167,7 +159,7 @@
         "key": "Beats/bar: %lld",
         "location": {
           "startingColumn": 21,
-          "startingLine": 123
+          "startingLine": 127
         }
       },
       {
@@ -175,7 +167,7 @@
         "key": "Beat unit: %lld",
         "location": {
           "startingColumn": 21,
-          "startingLine": 124
+          "startingLine": 128
         }
       }
     ]

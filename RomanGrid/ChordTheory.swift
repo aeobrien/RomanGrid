@@ -204,7 +204,57 @@ struct Roman {
     
     static let romanBase = ["I","II","III","IV","V","VI","VII"]
     
-    // Find degree index and accidental for given offset
+    // MARK: Letter-aware helpers
+    
+    // Cyclic list of letters starting from the tonic's letter (e.g. G,A,B,C,D,E,F for G)
+    private static func diatonicLetters(from tonic: PitchClass) -> [String] {
+        // Map pitch classes to a base letter (no accidental); good enough for degree numbering.
+        let pcToLetter: [PitchClass:String] = [
+            .C:"C", .CSharp:"C", .D:"D", .DSharp:"D", .E:"E",
+            .F:"F", .FSharp:"F", .G:"G", .GSharp:"G", .A:"A",
+            .ASharp:"A", .B:"B"
+        ]
+        let letters = ["C","D","E","F","G","A","B"]
+        let tonicLetter = pcToLetter[tonic]!
+        let start = letters.firstIndex(of: tonicLetter)! // safe
+        return (0..<7).map { letters[(start + $0) % 7] }
+    }
+    
+    // Given degree index 0..6, return the diatonic pitch class for that letter-degree in this key.
+    private static func diatonicPitchClass(forDegree idx: Int, tonic: PitchClass, mode: Mode) -> PitchClass {
+        let sc = scale(for: mode)            // existing: [0,2,4,5,7,9,11] (etc by mode)
+        return tonic.transposed(semitones: sc[idx])
+    }
+    
+    // Signed semitone alteration from the actual pitch to the diatonic letter-degree (−6..+6)
+    private static func alteration(from actual: PitchClass, toDiatonic diatonic: PitchClass) -> Int {
+        var diff = (actual.rawValue - diatonic.rawValue) % 12
+        if diff < -6 { diff += 12 }
+        if diff >  6 { diff -= 12 }
+        return diff
+    }
+    
+    // Letter-aware degree: choose degree by LETTER first, then accidental from diatonic reference.
+    static func degree(for root: PitchClass, in key: KeySignature) -> (idx: Int, accidental: Int) {
+        let letters = diatonicLetters(from: key.tonic) // e.g. G,A,B,C,D,E,F for G-based keys
+        // Evaluate alteration for each degree letter; choose minimal |alteration|
+        var bestIdx = 0
+        var bestAlt = 99
+        for i in 0..<7 {
+            let dia = diatonicPitchClass(forDegree: i, tonic: key.tonic, mode: key.mode)
+            let alt = alteration(from: root, toDiatonic: dia)
+            let absAlt = abs(alt)
+            if absAlt < abs(bestAlt) {
+                bestAlt = alt; bestIdx = i
+            } else if absAlt == abs(bestAlt) {
+                // Tie-break: in Ionian (major), favour flats on III/VI/VII (common borrowed usage).
+                if key.mode == .ionian, [2,5,6].contains(i), bestAlt > 0 { bestAlt = alt; bestIdx = i }
+            }
+        }
+        return (bestIdx, bestAlt)
+    }
+    
+    // OLD METHOD - Keep for backward compatibility if needed elsewhere
     static func degree(for offset: Int, mode: Mode) -> (idx:Int, accidental:Int) {
         let sc = scale(for: mode)
         let off = (offset + 12) % 12
@@ -215,28 +265,55 @@ struct Roman {
                 bestDelta = d; bestIdx = i
             }
         }
-        let accidental = off - sc[bestIdx] // -2…+2 (we’ll clamp to -1/0/+1 typically)
+        let accidental = off - sc[bestIdx] // -2…+2 (we'll clamp to -1/0/+1 typically)
         return (bestIdx, accidental)
     }
     
-    // Build roman string, preserving extra info as suffix (so we never lose data)
+    // Build roman string using letter-aware degree calculation
     static func roman(for chord: Chord, in key: KeySignature) -> String {
-        let offset = (chord.root.rawValue - key.tonic.rawValue + 12) % 12
-        let (idx, acc) = degree(for: offset, mode: key.mode)
+        // NEW: call letter-aware degree(for:root:in:)
+        let (idx, acc) = degree(for: chord.root, in: key)
         var numeral = romanBase[idx]
         
-        // Accidentals on the roman
-        if acc == -1 { numeral = "♭" + numeral }
-        else if acc == 1 { numeral = "♯" + numeral }
-        else if acc <= -2 { numeral = "♭♭" + numeral }
-        else if acc >= 2 { numeral = "♯♯" + numeral }
+        // Put accidentals on the numeral
+        if acc < 0 { numeral = String(repeating: "♭", count: -acc) + numeral }
+        else if acc > 0 { numeral = String(repeating: "♯", count: acc) + numeral }
         
-        // Case by chord’s third (quality)
-        switch chord.quality {
-        case .min, .sus2, .sus4, .dim:
-            numeral = numeral.lowercased()
-        default: break
+        // Case by chord's third (quality)
+        // For suspended chords, use case based on underlying diatonic quality
+        if chord.quality == .sus2 || chord.quality == .sus4 {
+            // Check if this degree is naturally major or minor in the key
+            let scale = self.scale(for: key.mode)
+            let diatonicThirdInterval: Int
+            
+            // Get the diatonic third interval for this degree
+            // idx is degree 0-6, we need the third above it
+            let thirdDegreeIdx = (idx + 2) % 7
+            let rootSemitones = scale[idx]
+            let thirdSemitones = scale[thirdDegreeIdx]
+            
+            // Calculate interval accounting for octave wrap
+            if thirdDegreeIdx < idx {
+                // Third wrapped to next octave
+                diatonicThirdInterval = (thirdSemitones + 12) - rootSemitones
+            } else {
+                diatonicThirdInterval = thirdSemitones - rootSemitones
+            }
+            
+            // Major third = 4 semitones, minor third = 3 semitones
+            if diatonicThirdInterval == 3 {
+                numeral = numeral.lowercased()
+            }
+            // else keep uppercase for major
+        } else {
+            // Non-suspended chords: use quality directly
+            switch chord.quality {
+            case .min, .dim:
+                numeral = numeral.lowercased()
+            default: break
+            }
         }
+        
         if chord.quality == .dim { numeral += "°" }
         if chord.quality == .aug { numeral += "+" }
         
@@ -271,11 +348,11 @@ struct Roman {
                 return numeral + suffix + "d"
             } else {
                 // Non-chord tone bass - show as slash chord
-                let boff = (bass.rawValue - key.tonic.rawValue + 12) % 12
-                let (bidx, bacc) = degree(for: boff, mode: key.mode)
+                // Use new letter-aware degree calculation
+                let (bidx, bacc) = degree(for: bass, in: key)
                 var broman = romanBase[bidx]
-                if bacc == -1 { broman = "♭" + broman }
-                else if bacc == 1 { broman = "♯" + broman }
+                if bacc < 0 { broman = String(repeating: "♭", count: -bacc) + broman }
+                else if bacc > 0 { broman = String(repeating: "♯", count: bacc) + broman }
                 broman = broman.uppercased() // conventionally uppercase for scale degree label
                 suffix += "/\(broman)"
             }

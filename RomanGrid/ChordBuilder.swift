@@ -13,6 +13,7 @@ struct ChordBuilderBar: View {
     @Binding var currentChord: Chord?
     @Binding var currentCell: Int
     let song: Song
+    let effectiveKey: KeySignature  // The effective key for the current section
     let onApply: (Chord, Bool) -> Void  // Bool indicates whether to advance
     let onDelete: () -> Void
     let onRest: () -> Void
@@ -170,7 +171,8 @@ struct ChordBuilderBar: View {
                 chord: $currentChord,
                 flags: $selectedFlags,
                 alterations: $selectedAlterations,
-                song: song
+                song: song,
+                effectiveKey: effectiveKey
             )
             .onDisappear {
                 immediateUpdate = true
@@ -192,7 +194,7 @@ struct ChordBuilderBar: View {
                 if let root = newRoot {
                     // Auto-select quality based on scale degree
                     let autoQuality = getAutoTriad(for: root)
-                    print("[CHORD BUILDER] Auto quality for \(root.name(preferSharps: true)) in \(song.keySig.tonic.name(preferSharps: true)) \(song.keySig.mode.rawValue): \(autoQuality)")
+                    print("[CHORD BUILDER] Auto quality for \(root.name(preferSharps: true)) in \(effectiveKey.tonic.name(preferSharps: true)) \(effectiveKey.mode == .ionian ? "Ionian (Major)" : effectiveKey.mode.rawValue): \(autoQuality)")
                     selectedTriad = autoQuality
                 }
             }
@@ -200,7 +202,7 @@ struct ChordBuilderBar: View {
             Text("-").tag(nil as PitchClass?)
             ForEach(PitchClass.allCases) { pc in
                 let romanInfo = getRomanNumeral(for: pc)
-                Text("\(pc.name(preferSharps: song.keySig.preferSharps)) - \(romanInfo)")
+                Text("\(pc.name(preferSharps: effectiveKey.preferSharps)) - \(romanInfo)")
                     .tag(pc as PitchClass?)
             }
         }
@@ -255,7 +257,7 @@ struct ChordBuilderBar: View {
         Picker("", selection: $selectedBass) {
             Text("Default").tag(nil as PitchClass?)
             ForEach(PitchClass.allCases) { pc in
-                Text("/\(pc.name(preferSharps: song.keySig.preferSharps))")
+                Text("/\(pc.name(preferSharps: effectiveKey.preferSharps))")
                     .tag(pc as PitchClass?)
             }
         }
@@ -268,6 +270,12 @@ struct ChordBuilderBar: View {
         HStack(spacing: 8) {
             Button("Rest") {
                 onRest()
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.small)
+            
+            Button("Clear") {
+                onDelete()
             }
             .buttonStyle(.bordered)
             .controlSize(.small)
@@ -383,12 +391,12 @@ struct ChordBuilderBar: View {
     }
     
     private func getAutoTriad(for root: PitchClass) -> Chord.Quality {
-        let tonic = song.keySig.tonic
-        let mode = song.keySig.mode
+        let tonic = effectiveKey.tonic
+        let mode = effectiveKey.mode
         let scale = Roman.scale(for: mode)
         let offset = (root.rawValue - tonic.rawValue + 12) % 12
         
-        print("[CHORD BUILDER] Getting auto triad: root=\(root.name(preferSharps: true)), tonic=\(tonic.name(preferSharps: true)), mode=\(mode.rawValue), offset=\(offset)")
+        print("[CHORD BUILDER] Getting auto triad: root=\(root.name(preferSharps: true)), tonic=\(tonic.name(preferSharps: true)), mode=\(mode == .ionian ? "Ionian (Major)" : mode.rawValue), offset=\(offset)")
         print("[CHORD BUILDER] Scale degrees: \(scale)")
         
         if let idx = scale.firstIndex(of: offset) {
@@ -440,8 +448,8 @@ struct ChordBuilderBar: View {
     }
     
     private func getRomanNumeral(for root: PitchClass) -> String {
-        let tonic = song.keySig.tonic
-        let mode = song.keySig.mode
+        let tonic = effectiveKey.tonic
+        let mode = effectiveKey.mode
         let scale = Roman.scale(for: mode)
         let offset = (root.rawValue - tonic.rawValue + 12) % 12
         
@@ -483,6 +491,7 @@ struct AdvancedChordOptions: View {
     @Binding var flags: Chord.Flags
     @Binding var alterations: [Chord.Alteration]
     let song: Song
+    let effectiveKey: KeySignature
     @Environment(\.dismiss) private var dismiss
     
     @State private var sus2Selected = false
@@ -565,7 +574,7 @@ struct AdvancedChordOptions: View {
                 Section("Preview") {
                     if let chord = chord {
                         Text(chord.displayName(
-                            preferSharps: song.keySig.preferSharps,
+                            preferSharps: effectiveKey.preferSharps,
                             capo: song.capo,
                             showShapesWithCapo: false
                         ))

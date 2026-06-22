@@ -100,6 +100,7 @@ struct SectionGridEditor: View {
             currentChord: $buildingChord,
             currentCell: $currentCell,
             song: song,
+            effectiveKey: song.keySig.transposed(semitones: song.transposition),
             onApply: { chord, shouldAdvance in
                 // Check if this is just a dummy chord for advancing
                 if chord.root == .C && chord.quality == .maj && chord.flags.isEmpty && buildingChord == nil {

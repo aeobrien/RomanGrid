@@ -22,6 +22,43 @@ struct SongEditorView: View {
                 
                 Section("Key & Tempo") {
                     KeyPicker(keySig: $song.keySig)
+                    
+                    // Global transposition control
+                    HStack {
+                        Text("Transpose:")
+                        Picker("Transposition", selection: $song.transposition) {
+                            ForEach(-11...11, id: \.self) { semitones in
+                                if semitones == 0 {
+                                    Text("Original").tag(semitones)
+                                } else {
+                                    let sign = semitones > 0 ? "+" : ""
+                                    Text("\(sign)\(semitones) semitones").tag(semitones)
+                                }
+                            }
+                        }
+                        .pickerStyle(.menu)
+                        
+                        if song.transposition != 0 {
+                            Button(action: { song.transposition = 0 }) {
+                                Image(systemName: "arrow.counterclockwise")
+                                    .font(.caption)
+                            }
+                            .buttonStyle(.borderless)
+                        }
+                    }
+                    
+                    // Show effective key when transposed
+                    if song.transposition != 0 {
+                        HStack {
+                            Text("Playing in:")
+                                .foregroundColor(.secondary)
+                            let effectiveKey = song.keySig.transposed(semitones: song.transposition)
+                            Text("\(effectiveKey.tonic.name(preferSharps: effectiveKey.preferSharps)) \(effectiveKey.mode.rawValue)")
+                                .fontWeight(.medium)
+                                .foregroundColor(.orange)
+                        }
+                    }
+                    
                     HStack {
                         Stepper(value: $song.tempoBPM, in: 20...300, step: 0.1) {
                             Text("Tempo: \(String(format: "%.1f", song.tempoBPM)) BPM")

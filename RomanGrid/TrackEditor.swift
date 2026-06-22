@@ -10,7 +10,7 @@ struct TrackEditor: View {
     @State private var selectedSectionIndex: Int = 0
     @State private var selectedCell: Int = 0
     @State private var buildingChord: Chord? = nil
-    @State private var debugMessage: String = ""
+    // @State private var debugMessage: String = "" // Removed debug message
     @State private var cellDisplayMode: CellDisplayMode = .chord
     @State private var showAddSection = false
     @State private var isDragging = false
@@ -21,6 +21,19 @@ struct TrackEditor: View {
     @State private var selectionEnd: Int? = nil
     @State private var scrollDisabled = false
     @State private var dragChord: Chord? = nil  // Store chord from drag start cell
+    @State private var showLyricsEditor = false
+    @State private var lyricsEditingSection: SectionInstance? = nil
+    @State private var showRenameAlert = false
+    @State private var renameSectionIndex: Int? = nil
+    @State private var newSectionName = ""
+    @State private var showViewMode = false
+    @State private var insertAfterIndex: Int? = nil
+    @State private var showGlobalLyricsEditor = false
+    @State private var showArrangementView = false
+    @State private var showMultiCellOptions = false
+    @State private var multiCellSelectionStart: Int? = nil
+    @State private var multiCellSelectionEnd: Int? = nil
+    @State private var multiCellSelectionBlueprint: SectionBlueprint? = nil
     
     var currentSection: SectionInstance? {
         guard selectedSectionIndex < song.arrangement.count else { return nil }
@@ -57,8 +70,16 @@ struct TrackEditor: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar(.hidden, for: .tabBar)  // Hide bottom toolbar in track editor
         .toolbar {
+            ToolbarItem(placement: .topBarLeading) {
+                Button(action: { showViewMode = true }) {
+                    Label("View Mode", systemImage: "eye")
+                }
+            }
             ToolbarItem(placement: .topBarTrailing) {
                 Menu {
+                    Button("Arrange Sections") { showArrangementView = true }
+                    Button("Edit All Lyrics") { showGlobalLyricsEditor = true }
+                    Divider()
                     Button("Add Section") { showAddSection = true }
                     Button("Duplicate Current Section") { duplicateCurrentSection() }
                     Divider()
@@ -73,10 +94,96 @@ struct TrackEditor: View {
         }
         .sheet(isPresented: $showAddSection) {
             AddSectionView(song: song) { newSection in
-                song.arrangement.append(newSection)
-                selectedSectionIndex = song.arrangement.count - 1
+                if let insertIndex = insertAfterIndex {
+                    song.arrangement.insert(newSection, at: insertIndex + 1)
+                    selectedSectionIndex = insertIndex + 1
+                    insertAfterIndex = nil
+                } else {
+                    song.arrangement.append(newSection)
+                    selectedSectionIndex = song.arrangement.count - 1
+                }
             }
         }
+        .sheet(isPresented: $showLyricsEditor) {
+            if let section = lyricsEditingSection,
+               let blueprint = !section.isLinked && section.ownBlueprint != nil ? 
+                              section.ownBlueprint : 
+                              song.blueprints.first { $0.id == section.blueprintID } {
+                LyricsEditor(instance: section, blueprint: blueprint, song: song)
+            }
+        }
+        .alert("Rename Section", isPresented: $showRenameAlert) {
+            TextField("Section Name", text: $newSectionName)
+            Button("Cancel", role: .cancel) { }
+            Button("Rename") {
+                if let index = renameSectionIndex {
+                    song.arrangement[index].displayName = newSectionName
+                }
+            }
+        } message: {
+            Text("Enter a new name for this section")
+        }
+        .fullScreenCover(isPresented: $showViewMode) {
+            SongViewMode(song: song)
+        }
+        .sheet(isPresented: $showGlobalLyricsEditor) {
+            GlobalLyricsEditor(song: song)
+        }
+        .sheet(isPresented: $showArrangementView) {
+            SectionArrangementView(song: song)
+        }
+        .confirmationDialog("Multi-Cell Options", isPresented: $showMultiCellOptions) {
+            if let startTick = multiCellSelectionStart,
+               let endTick = multiCellSelectionEnd,
+               let blueprint = multiCellSelectionBlueprint {
+                let length = endTick - startTick + 1
+                
+                // Fill option - if there's a chord in the first cell or buildingChord
+                if let firstEvent = eventCovering(startTick, in: blueprint),
+                   !firstEvent.isRest {
+                    Button("Fill with \(firstEvent.chord.displayName(preferSharps: song.keySig.preferSharps))") {
+                        applyChordToCell(chord: firstEvent.chord, length: length, autoAdvance: false, blueprint: blueprint)
+                        clearMultiSelection()
+                    }
+                } else if let chord = buildingChord {
+                    Button("Fill with \(chord.displayName(preferSharps: song.keySig.preferSharps))") {
+                        applyChordToCell(chord: chord, length: length, autoAdvance: false, blueprint: blueprint)
+                        clearMultiSelection()
+                    }
+                }
+                
+                Button("Clear Selection", role: .destructive) {
+                    // Delete all events in selection range
+                    for tick in startTick...endTick {
+                        if let event = eventCovering(tick, in: blueprint) {
+                            if let index = blueprint.events.firstIndex(where: { $0.id == event.id }) {
+                                blueprint.events.remove(at: index)
+                            }
+                        }
+                    }
+                    clearMultiSelection()
+                }
+                
+                Button("Cancel", role: .cancel) {
+                    clearMultiSelection()
+                }
+            }
+        } message: {
+            if let startTick = multiCellSelectionStart,
+               let endTick = multiCellSelectionEnd {
+                let length = endTick - startTick + 1
+                Text("\(length) cells selected")
+            }
+        }
+    }
+    
+    private func clearMultiSelection() {
+        showMultiCellOptions = false
+        multiCellSelectionStart = nil
+        multiCellSelectionEnd = nil
+        multiCellSelectionBlueprint = nil
+        selectionStart = nil
+        selectionEnd = nil
     }
     
     // MARK: - Track Header
@@ -98,8 +205,9 @@ struct TrackEditor: View {
                         }) {
                             VStack(spacing: 2) {
                                 HStack(spacing: 4) {
-                                    if !section.isLinked {
-                                        Image(systemName: "link.badge.minus")
+                                    if let bp = blueprint,
+                                       bp.name.contains("(Custom)") {
+                                        Image(systemName: "star.fill")
                                             .font(.system(size: 10))
                                             .foregroundColor(.orange)
                                     }
@@ -130,19 +238,37 @@ struct TrackEditor: View {
                         }
                         .buttonStyle(.plain)
                         .contextMenu {
-                            if section.isLinked {
+                            Button(action: { 
+                                lyricsEditingSection = section
+                                showLyricsEditor = true
+                            }) {
+                                Label("Edit Lyrics", systemImage: "text.alignleft")
+                            }
+                            Button("Rename") {
+                                renameSection(at: index)
+                            }
+                            Divider()
+                            if let bp = blueprint,
+                               !bp.name.contains("(Custom)") {
                                 Button(action: { unlinkSection(at: index) }) {
-                                    Label("Unlink from Original", systemImage: "link.badge.minus")
-                                }
-                            } else {
-                                Button(action: { relinkSection(at: index) }) {
-                                    Label("Re-link to Original", systemImage: "link")
+                                    Label("Create Custom Version", systemImage: "star")
                                 }
                             }
                             Divider()
-                            Button("Rename") {
-                                // TODO: Add rename functionality
+                            Button(action: { insertSection(after: index) }) {
+                                Label("Insert Section After", systemImage: "plus.circle")
                             }
+                            if index > 0 {
+                                Button(action: { moveSection(from: index, to: index - 1) }) {
+                                    Label("Move Left", systemImage: "arrow.left")
+                                }
+                            }
+                            if index < song.arrangement.count - 1 {
+                                Button(action: { moveSection(from: index, to: index + 1) }) {
+                                    Label("Move Right", systemImage: "arrow.right")
+                                }
+                            }
+                            Divider()
                             Button("Delete", role: .destructive) {
                                 deleteSection(at: index)
                             }
@@ -165,39 +291,164 @@ struct TrackEditor: View {
             // Section info bar
             if let blueprint = currentBlueprint, let instance = currentSection {
                 HStack {
-                    // Show link status
-                    if !instance.isLinked {
-                        Label("Unlinked", systemImage: "link.badge.minus")
+                    // Show custom status  
+                    if blueprint.name.contains("(Custom)") {
+                        Label("Custom", systemImage: "star.fill")
                             .font(.caption)
                             .foregroundColor(.orange)
                     }
                     
-                    Text("\(blueprint.resolution.label) • \(song.timeSig.beatsPerBar)/\(song.timeSig.beatUnit)")
+                    // Resolution picker
+                    Menu {
+                        ForEach(GridResolution.allCases) { resolution in
+                            Button(action: {
+                                changeResolution(to: resolution, for: blueprint)
+                            }) {
+                                HStack {
+                                    Text(resolution.label)
+                                    if blueprint.resolution == resolution {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Text(blueprint.resolution.label)
+                                .font(.caption)
+                            Image(systemName: "chevron.down")
+                                .font(.system(size: 8))
+                        }
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color(UIColor.secondarySystemFill))
+                        .cornerRadius(4)
+                    }
+                    
+                    Text("• \(song.timeSig.beatsPerBar)/\(song.timeSig.beatUnit)")
                         .font(.caption)
-                    Spacer()
                     
                     // Bar count controls
-                    HStack(spacing: 4) {
+                    HStack(spacing: 2) {
                         Button(action: { removeBarFromCurrentSection() }) {
                             Image(systemName: "minus.circle")
-                                .imageScale(.small)
+                                .font(.system(size: 12))
                         }
                         .disabled(blueprint.bars <= 1)
                         
                         Text("\(blueprint.bars) bars")
                             .font(.caption)
-                            .frame(minWidth: 50)
+                            .frame(minWidth: 40)
                         
                         Button(action: { addBarToCurrentSection() }) {
                             Image(systemName: "plus.circle")
-                                .imageScale(.small)
+                                .font(.system(size: 12))
                         }
                     }
+                    .padding(.horizontal, 6)
+                    .padding(.vertical, 2)
+                    .background(Color(UIColor.secondarySystemFill))
+                    .cornerRadius(4)
                     
                     Spacer()
-                    Text("\(song.keySig.tonic.name(preferSharps: song.keySig.preferSharps)) \(song.keySig.mode.rawValue)")
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    
+                    // Section key override indicator/menu
+                    Menu {
+                        Button(action: {
+                            // Clear key override
+                            instance.keyOverride = nil
+                        }) {
+                            HStack {
+                                Text("Use Song Key")
+                                if instance.keyOverride == nil {
+                                    Image(systemName: "checkmark")
+                                }
+                            }
+                        }
+                        
+                        Divider()
+                        
+                        // Major keys submenu
+                        Menu("Major Keys") {
+                            ForEach(PitchClass.allCases) { pitch in
+                                Button(action: {
+                                    instance.keyOverride = KeySignature(tonic: pitch, mode: .ionian)
+                                }) {
+                                    HStack {
+                                        Text("\(pitch.name(preferSharps: true)) Major")
+                                        if instance.keyOverride?.tonic == pitch && 
+                                           instance.keyOverride?.mode == .ionian {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Minor keys submenu
+                        Menu("Minor Keys") {
+                            ForEach(PitchClass.allCases) { pitch in
+                                Button(action: {
+                                    instance.keyOverride = KeySignature(tonic: pitch, mode: .aeolian)
+                                }) {
+                                    HStack {
+                                        Text("\(pitch.name(preferSharps: pitch != .ASharp && pitch != .DSharp && pitch != .GSharp)) Minor")
+                                        if instance.keyOverride?.tonic == pitch && 
+                                           instance.keyOverride?.mode == .aeolian {
+                                            Image(systemName: "checkmark")
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        
+                        // Other modes submenu
+                        Menu("Other Modes") {
+                            ForEach(PitchClass.allCases) { pitch in
+                                Menu("\(pitch.name(preferSharps: true))") {
+                                    ForEach(Mode.allCases) { mode in
+                                        if mode != .ionian && mode != .aeolian {
+                                            Button(action: {
+                                                instance.keyOverride = KeySignature(tonic: pitch, mode: mode)
+                                            }) {
+                                                HStack {
+                                                    Text("\(pitch.name(preferSharps: true)) \(mode.rawValue)")
+                                                    if instance.keyOverride?.tonic == pitch && 
+                                                       instance.keyOverride?.mode == mode {
+                                                        Image(systemName: "checkmark")
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    } label: {
+                        HStack(spacing: 4) {
+                            Image(systemName: "key")
+                                .font(.system(size: 10))
+                            
+                            let effectiveKey = instance.effectiveKey(songKey: song.keySig, songTransposition: song.transposition)
+                            
+                            // Show both root and mode
+                            Text("\(effectiveKey.tonic.name(preferSharps: effectiveKey.preferSharps)) \(effectiveKey.mode == .ionian ? "Maj" : effectiveKey.mode == .aeolian ? "Min" : String(effectiveKey.mode.rawValue.prefix(3)))")
+                                .font(.caption)
+                                .fontWeight(instance.keyOverride != nil ? .bold : .regular)
+                            
+                            if instance.keyOverride != nil {
+                                Image(systemName: "arrow.triangle.2.circlepath")
+                                    .font(.system(size: 8))
+                                    .foregroundColor(.orange)
+                            }
+                        }
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(instance.keyOverride != nil ? 
+                                   Color.orange.opacity(0.2) : 
+                                   Color(UIColor.secondarySystemFill))
+                        .cornerRadius(4)
+                    }
                 }
                 .padding(.horizontal, 8)
             }
@@ -211,7 +462,7 @@ struct TrackEditor: View {
     
     private func sectionGrid(blueprint: SectionBlueprint, instance: SectionInstance) -> some View {
         GeometryReader { geometry in
-            let availableWidth = geometry.size.width - 40
+            let availableWidth = geometry.size.width - 8 // Just account for padding now
             let cellsPerBar = song.timeSig.beatsPerBar * blueprint.resolution.rawValue
             let cellWidth = min(80, availableWidth / CGFloat(cellsPerBar))
             let cellHeight: CGFloat = 28
@@ -261,12 +512,6 @@ struct TrackEditor: View {
                 buildCell(bar: bar, cellIndex: c, blueprint: blueprint)
             }
         }
-        .overlay(alignment: .leading) {
-            Text("B\(bar+1)")
-                .font(.system(size: 10))
-                .foregroundStyle(.secondary)
-                .frame(width: 25, alignment: .leading)
-        }
     }
     
     @ViewBuilder
@@ -296,22 +541,33 @@ struct TrackEditor: View {
     private func cellBackground(isFirstCell: Bool) -> some View {
         Rectangle()
             .strokeBorder(
-                isFirstCell ? Color.primary : Color.secondary.opacity(0.2),
-                lineWidth: isFirstCell ? 1.5 : 0.5
+                Color.secondary.opacity(0.2),
+                lineWidth: 0.5
             )
             .background(
-                isFirstCell ? Color.secondary.opacity(0.05) : Color.clear
+                Color.clear
             )
     }
     
     @ViewBuilder
     private func cellContent(tick: Int, blueprint: SectionBlueprint) -> some View {
-        if let ev = eventCovering(tick, in: blueprint) {
-            let label = chordLabel(ev)
+        let eventsInCell = eventsWithinCell(tick: tick, blueprint: blueprint)
+        
+        if eventsInCell.count > 1 {
+            // Multiple chords in this cell - show split view
+            MultiChordCellView(
+                events: eventsInCell,
+                cellDisplayMode: cellDisplayMode,
+                song: song,
+                colourByFunction: colourByFunction,
+                section: currentSection
+            )
+        } else if let ev = eventsInCell.first {
+            // Single chord in this cell
             Rectangle()
                 .fill(cellColour(for: ev))
                 .opacity(0.20)
-            Text(label)
+            Text(chordLabel(ev))
                 .font(.system(size: cellDisplayMode == .both ? 10 : 12, weight: .medium))
                 .minimumScaleFactor(0.5)
                 .lineLimit(cellDisplayMode == .both ? 2 : 1)
@@ -397,43 +653,29 @@ struct TrackEditor: View {
                 Divider()
             }
             
-            // Debug info bar (if dragging or debug message)
-            if isDragging || debugMessage != "" {
-                HStack {
-                    if isDragging {
-                        Label("Dragging", systemImage: "hand.draw.fill")
-                            .font(.caption2)
-                            .foregroundStyle(.purple)
-                    }
-                    
-                    if debugMessage != "" {
-                        Text(debugMessage)
-                            .font(.caption2)
-                            .foregroundStyle(.blue)
-                    }
-                    
-                    Spacer()
-                }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-            }
+            // Debug info bar removed
         }
     }
     
     private func getUsedChords() -> [Chord] {
-        var chordSet = Set<Chord>()
+        var chordCounts: [Chord: Int] = [:]
         
-        // Collect all unique chords from all blueprints
+        // Count occurrences of each chord
         for blueprint in song.blueprints {
             for event in blueprint.events {
                 if !event.isRest {
-                    chordSet.insert(event.chord)
+                    chordCounts[event.chord, default: 0] += 1
                 }
             }
         }
         
-        // Sort by root note and quality for consistent ordering
-        return Array(chordSet).sorted { chord1, chord2 in
+        // Sort by frequency (most used first), then by root note and quality
+        return chordCounts.keys.sorted { chord1, chord2 in
+            let count1 = chordCounts[chord1] ?? 0
+            let count2 = chordCounts[chord2] ?? 0
+            if count1 != count2 {
+                return count1 > count2  // More frequent chords first
+            }
             if chord1.root.rawValue != chord2.root.rawValue {
                 return chord1.root.rawValue < chord2.root.rawValue
             }
@@ -464,15 +706,20 @@ struct TrackEditor: View {
         VStack(spacing: 0) {
             Divider()
             
+            // Bottom controls bar removed - moved to top
+            Divider()
+            
             // Quick-add chord pills
             quickAddChordBar
             
             // Chord builder bar
             if currentBlueprint != nil {
+                let effectiveKey = currentSection?.effectiveKey(songKey: song.keySig, songTransposition: song.transposition) ?? song.keySig.transposed(semitones: song.transposition)
                 ChordBuilderBar(
                     currentChord: $buildingChord,
                     currentCell: $selectedCell,
                     song: song,
+                    effectiveKey: effectiveKey,
                     onApply: { chord, shouldAdvance in
                         if let blueprint = currentBlueprint {
                             applyChordToCell(chord: chord, length: 1, autoAdvance: shouldAdvance, blueprint: blueprint)
@@ -497,6 +744,27 @@ struct TrackEditor: View {
     
     // MARK: - Helper Functions
     
+    private func eventsWithinCell(tick: Int, blueprint: SectionBlueprint) -> [ChordEvent] {
+        // Get the absolute beat range for this cell
+        let ticksPerBeat = Double(blueprint.resolution.rawValue)
+        let cellStartBeat = Double(tick) / ticksPerBeat
+        let cellEndBeat = Double(tick + 1) / ticksPerBeat
+        
+        // Find all events that overlap with this cell's beat range
+        return blueprint.events.filter { event in
+            guard let absStart = event.absoluteStart,
+                  let absDuration = event.absoluteDuration else {
+                // Fallback to tick-based calculation
+                let eventEnd = event.startTick + event.lengthTicks
+                return tick >= event.startTick && tick < eventEnd
+            }
+            
+            let eventEndBeat = absStart + absDuration
+            // Check if event overlaps with this cell
+            return absStart < cellEndBeat && eventEndBeat > cellStartBeat
+        }.sorted { ($0.absoluteStart ?? Double($0.startTick)) < ($1.absoluteStart ?? Double($1.startTick)) }
+    }
+    
     private func eventCovering(_ tick: Int, in blueprint: SectionBlueprint) -> ChordEvent? {
         blueprint.events.first { ev in
             tick >= ev.startTick && tick < ev.startTick + ev.lengthTicks
@@ -519,10 +787,15 @@ struct TrackEditor: View {
         
         if let ev = eventCovering(tick, in: blueprint) {
             buildingChord = ev.chord
-            debugMessage = "B\(bar + 1)C\(cellInBar + 1): \(ev.chord.displayName(preferSharps: true))"
+            
+            // Debug: Show effective key info
+            let effectiveKey = currentSection?.effectiveKey(songKey: song.keySig, songTransposition: song.transposition) ?? song.keySig.transposed(semitones: song.transposition)
+            let roman = Roman.roman(for: ev.chord, in: effectiveKey)
+            let modeStr = effectiveKey.mode == .ionian ? "Major" : effectiveKey.mode == .aeolian ? "Minor" : effectiveKey.mode.rawValue
+            // Debug message removed
         } else {
             buildingChord = nil
-            debugMessage = "B\(bar + 1)C\(cellInBar + 1): empty"
+            // Debug message removed
         }
         
         selectionStart = tick
@@ -533,13 +806,12 @@ struct TrackEditor: View {
         // Account for ScrollView padding and section label
         let sectionLabelHeight: CGFloat = 35 // Approximate height of section label + padding
         let horizontalPadding: CGFloat = 4 // ScrollView horizontal padding
-        let barLabelWidth: CGFloat = 25 // Width of "B1" labels
         let cellSpacing: CGFloat = 1 // Spacing between cells
         let barSpacing: CGFloat = 4 // Spacing between bars
         
         // Adjust coordinates
         let adjustedY = max(0, location.y - sectionLabelHeight)
-        let adjustedX = max(0, location.x - horizontalPadding - barLabelWidth)
+        let adjustedX = max(0, location.x - horizontalPadding)
         
         // Calculate which bar we're in
         let barHeight = cellHeight + barSpacing
@@ -586,10 +858,10 @@ struct TrackEditor: View {
             if let event = eventCovering(cellIndex, in: blueprint) {
                 dragChord = event.chord
                 print("[DRAG] Using chord from starting cell: \(event.chord.displayName(preferSharps: true))")
-                debugMessage = "Extending \(event.chord.displayName(preferSharps: true))"
+                // Debug message removed
             } else {
                 dragChord = nil
-                debugMessage = "Drag at B\(bar + 1)C\(cellInBar + 1)"
+                // Debug message removed
             }
         } else if cellIndex != dragCurrentCell {
             print("[DRAG] Moved to cell \(cellIndex) (Bar \(bar + 1), Cell \(cellInBar + 1))")
@@ -607,7 +879,7 @@ struct TrackEditor: View {
                 let endBar = maxCell / cellsPerBar
                 let endCellInBar = maxCell % cellsPerBar
                 
-                debugMessage = "B\(startBar + 1)C\(startCellInBar + 1) to B\(endBar + 1)C\(endCellInBar + 1) (\(length) cells)"
+                // Debug message removed
             }
         }
     }
@@ -625,16 +897,11 @@ struct TrackEditor: View {
                 selectionStart = minTick
                 selectionEnd = maxTick
                 
-                // Use the chord from the starting cell if available, otherwise use buildingChord
-                if let chord = dragChord {
-                    applyChordToCell(chord: chord, length: length, autoAdvance: false, blueprint: blueprint)
-                    debugMessage = "Extended \(chord.displayName(preferSharps: true)) across \(length) cells"
-                } else if let chord = buildingChord {
-                    applyChordToCell(chord: chord, length: length, autoAdvance: false, blueprint: blueprint)
-                    debugMessage = "Applied \(chord.displayName(preferSharps: true)) across \(length) cells"
-                } else {
-                    debugMessage = "Selected \(length) cells - choose a chord to apply"
-                }
+                // Show multi-cell selection options
+                showMultiCellOptions = true
+                multiCellSelectionStart = minTick
+                multiCellSelectionEnd = maxTick
+                multiCellSelectionBlueprint = blueprint
             } else {
                 selectedCell = start
                 if let ev = eventCovering(start, in: blueprint) {
@@ -653,9 +920,18 @@ struct TrackEditor: View {
     
     private func chordLabel(_ ev: ChordEvent) -> String {
         if ev.isRest { return "Rest" }
-        let key = song.keySig
-        let name = ev.chord.displayName(preferSharps: key.preferSharps, capo: song.capo, showShapesWithCapo: song.capo > 0 && cellDisplayMode != .roman)
-        let roman = Roman.roman(for: ev.chord, in: key)
+        // Use effective key for the current section
+        let effectiveKey = currentSection?.effectiveKey(songKey: song.keySig, songTransposition: song.transposition) ?? song.keySig.transposed(semitones: song.transposition)
+        // Transpose the chord for display if in chord mode
+        let displayChord = cellDisplayMode != .roman ? Chord(
+            root: ev.chord.root.transposed(semitones: song.transposition),
+            quality: ev.chord.quality,
+            flags: ev.chord.flags,
+            alterations: ev.chord.alterations,
+            bass: ev.chord.bass?.transposed(semitones: song.transposition)
+        ) : ev.chord
+        let name = displayChord.displayName(preferSharps: effectiveKey.preferSharps, capo: song.capo, showShapesWithCapo: song.capo > 0 && cellDisplayMode != .roman)
+        let roman = Roman.roman(for: ev.chord, in: effectiveKey)
         switch cellDisplayMode {
         case .chord: return name
         case .roman: return roman
@@ -665,13 +941,22 @@ struct TrackEditor: View {
     
     private func cellColour(for ev: ChordEvent) -> Color {
         guard colourByFunction, !ev.isRest else { return .accentColor }
-        let offset = (ev.chord.root.rawValue - song.keySig.tonic.rawValue + 12) % 12
-        let (idx, _) = Roman.degree(for: offset, mode: song.keySig.mode)
+        // Use effective key for the current section
+        let effectiveKey = currentSection?.effectiveKey(songKey: song.keySig, songTransposition: song.transposition) ?? song.keySig.transposed(semitones: song.transposition)
+        let offset = (ev.chord.root.rawValue - effectiveKey.tonic.rawValue + 12) % 12
+        let (idx, _) = Roman.degree(for: offset, mode: effectiveKey.mode)
         let palette: [Color] = [.blue, .green, .orange, .purple, .red, .teal, .pink]
         return palette[idx % palette.count]
     }
     
     // MARK: - Track Management
+    
+    private func renameSection(at index: Int) {
+        guard index < song.arrangement.count else { return }
+        newSectionName = song.arrangement[index].displayName
+        renameSectionIndex = index
+        showRenameAlert = true
+    }
     
     private func unlinkSection(at index: Int) {
         guard index < song.arrangement.count else { return }
@@ -683,9 +968,9 @@ struct TrackEditor: View {
         // Find the original blueprint
         guard let originalBlueprint = song.blueprints.first(where: { $0.id == section.blueprintID }) else { return }
         
-        // Create a deep copy of the blueprint
+        // Create a deep copy of the blueprint and add it to the song's blueprints
         let newBlueprint = SectionBlueprint(
-            name: "\(originalBlueprint.name) (Unlinked)",
+            name: "\(section.displayName) (Custom)",
             bars: originalBlueprint.bars,
             resolution: originalBlueprint.resolution,
             defaultKeyOverride: originalBlueprint.defaultKeyOverride
@@ -702,34 +987,17 @@ struct TrackEditor: View {
             newBlueprint.events.append(newEvent)
         }
         
-        // Set the section's own blueprint and mark as unlinked
-        section.ownBlueprint = newBlueprint
-        section.isLinked = false
+        // Add the new blueprint to the song's library
+        song.blueprints.append(newBlueprint)
         
-        debugMessage = "Unlinked \(section.displayName)"
+        // Update the section to point to the new blueprint
+        section.blueprintID = newBlueprint.id
+        section.ownBlueprint = nil  // No longer needed since it's a regular blueprint now
+        section.isLinked = true  // It's linked to its own custom blueprint
+        
+        // Debug message removed
     }
     
-    private func relinkSection(at index: Int) {
-        guard index < song.arrangement.count else { return }
-        let section = song.arrangement[index]
-        
-        // Only relink if currently unlinked
-        guard !section.isLinked else { return }
-        
-        // Delete the own blueprint and relink to original
-        if let ownBlueprint = section.ownBlueprint {
-            // Find the index and remove it
-            if let bpIndex = song.blueprints.firstIndex(where: { $0.id == ownBlueprint.id }) {
-                song.blueprints.remove(at: bpIndex)
-            }
-            context.delete(ownBlueprint)
-        }
-        
-        section.ownBlueprint = nil
-        section.isLinked = true
-        
-        debugMessage = "Re-linked \(section.displayName)"
-    }
     
     private func deleteSection(at index: Int) {
         guard index < song.arrangement.count else { return }
@@ -746,6 +1014,28 @@ struct TrackEditor: View {
         if selectedSectionIndex >= song.arrangement.count {
             selectedSectionIndex = max(0, song.arrangement.count - 1)
         }
+    }
+    
+    private func insertSection(after index: Int) {
+        insertAfterIndex = index
+        showAddSection = true
+    }
+    
+    private func moveSection(from sourceIndex: Int, to destinationIndex: Int) {
+        guard sourceIndex != destinationIndex,
+              sourceIndex >= 0, sourceIndex < song.arrangement.count,
+              destinationIndex >= 0, destinationIndex < song.arrangement.count else { return }
+        
+        let section = song.arrangement[sourceIndex]
+        song.arrangement.remove(at: sourceIndex)
+        
+        // Adjust insertion index if moving right
+        let insertIndex = destinationIndex > sourceIndex ? destinationIndex : destinationIndex
+        song.arrangement.insert(section, at: insertIndex)
+        
+        // Update selected index to follow the moved section
+        selectedSectionIndex = insertIndex
+        // Debug message removed
     }
     
     private func duplicateCurrentSection() {
@@ -767,7 +1057,7 @@ struct TrackEditor: View {
     private func addBarToCurrentSection() {
         guard let blueprint = currentBlueprint else { return }
         blueprint.bars += 1
-        debugMessage = "Added bar - now \(blueprint.bars) bars"
+        // Debug message removed
     }
     
     private func removeBarFromCurrentSection() {
@@ -789,13 +1079,44 @@ struct TrackEditor: View {
         }
         
         blueprint.bars -= 1
-        debugMessage = "Removed bar - now \(blueprint.bars) bars"
+        // Debug message removed
     }
     
     private func cleanTrack() {
         for blueprint in song.blueprints {
             cleanDuplicateEvents(in: blueprint)
         }
+    }
+    
+    private func changeResolution(to newResolution: GridResolution, for blueprint: SectionBlueprint) {
+        let oldResolution = blueprint.resolution
+        if oldResolution == newResolution { return }
+        
+        // First, update all events' absolute values based on current resolution
+        for event in blueprint.events {
+            event.updateAbsoluteValues(resolution: oldResolution, beatsPerBar: song.timeSig.beatsPerBar)
+        }
+        
+        // Change the resolution
+        blueprint.resolution = newResolution
+        
+        // Now update tick positions based on new resolution
+        for event in blueprint.events {
+            event.updateTicksFromAbsolute(resolution: newResolution, beatsPerBar: song.timeSig.beatsPerBar)
+        }
+        
+        // Debug message removed
+    }
+    
+    private func transposeTrack(to newTonic: PitchClass) {
+        let oldTonic = song.keySig.tonic
+        if oldTonic == newTonic { return }
+        
+        // Just update the song's key signature
+        // The chords stay the same, but will be displayed/interpreted differently
+        song.keySig.tonic = newTonic
+        
+        // Debug message removed
     }
     
     private func cleanDuplicateEvents(in blueprint: SectionBlueprint) {
@@ -826,6 +1147,7 @@ struct TrackEditor: View {
         removeOverlappingEvents(from: selectedCell, to: selectedCell + length - 1, in: blueprint)
         
         let newEvent = ChordEvent(startTick: selectedCell, lengthTicks: length, isRest: false, chord: chord)
+        newEvent.updateAbsoluteValues(resolution: blueprint.resolution, beatsPerBar: song.timeSig.beatsPerBar)
         blueprint.events.append(newEvent)
         
         if autoAdvance {
@@ -844,25 +1166,34 @@ struct TrackEditor: View {
         for ev in overlapping {
             let evEnd = ev.startTick + ev.lengthTicks - 1
             
-            if ev.startTick < startTick {
-                ev.lengthTicks = startTick - ev.startTick
-            } else if evEnd > endTick {
-                let newEvent = ChordEvent(
-                    startTick: endTick + 1,
-                    lengthTicks: evEnd - endTick,
-                    isRest: ev.isRest,
-                    chord: ev.chord
-                )
-                blueprint.events.append(newEvent)
-                
+            // In beat division mode, don't split events - just delete overlapping ones
+            if blueprint.resolution == .beat {
                 if let index = blueprint.events.firstIndex(where: { $0.id == ev.id }) {
                     blueprint.events.remove(at: index)
                     context.delete(ev)
                 }
             } else {
-                if let index = blueprint.events.firstIndex(where: { $0.id == ev.id }) {
-                    blueprint.events.remove(at: index)
-                    context.delete(ev)
+                // In 8th/16th note modes, allow splitting events
+                if ev.startTick < startTick {
+                    ev.lengthTicks = startTick - ev.startTick
+                } else if evEnd > endTick {
+                    let newEvent = ChordEvent(
+                        startTick: endTick + 1,
+                        lengthTicks: evEnd - endTick,
+                        isRest: ev.isRest,
+                        chord: ev.chord
+                    )
+                    blueprint.events.append(newEvent)
+                    
+                    if let index = blueprint.events.firstIndex(where: { $0.id == ev.id }) {
+                        blueprint.events.remove(at: index)
+                        context.delete(ev)
+                    }
+                } else {
+                    if let index = blueprint.events.firstIndex(where: { $0.id == ev.id }) {
+                        blueprint.events.remove(at: index)
+                        context.delete(ev)
+                    }
                 }
             }
         }
@@ -878,7 +1209,7 @@ struct TrackEditor: View {
     private func deleteCurrentCellChord(blueprint: SectionBlueprint) {
         if let event = eventCovering(selectedCell, in: blueprint) {
             deleteEvent(event, from: blueprint)
-            debugMessage = "Deleted chord at cell \(selectedCell + 1)"
+            // Debug message removed
         }
     }
     
@@ -895,6 +1226,77 @@ struct TrackEditor: View {
         removeOverlappingEvents(from: tick, to: tick, in: blueprint)
         let ev = ChordEvent(startTick: tick, lengthTicks: 1, isRest: true, chord: .defaultMajC)
         blueprint.events.append(ev)
+    }
+}
+
+// MARK: - Multi-Chord Cell View
+
+struct MultiChordCellView: View {
+    let events: [ChordEvent]
+    let cellDisplayMode: CellDisplayMode
+    let song: Song
+    let colourByFunction: Bool
+    let section: SectionInstance?
+    @AppStorage("colourByFunction") var colourByFunctionSetting: Bool = true
+    
+    var body: some View {
+        HStack(spacing: 0) {
+            ForEach(Array(events.enumerated()), id: \.element.id) { index, event in
+                VStack(spacing: 0) {
+                    if index > 0 {
+                        // Visual divider between chords
+                        Rectangle()
+                            .fill(Color.secondary.opacity(0.3))
+                            .frame(width: 1)
+                    }
+                    
+                    ZStack {
+                        Rectangle()
+                            .fill(cellColour(for: event))
+                            .opacity(0.15)
+                        
+                        Text(chordLabel(event))
+                            .font(.system(size: 9, weight: .medium))
+                            .minimumScaleFactor(0.5)
+                            .lineLimit(1)
+                            .multilineTextAlignment(.center)
+                    }
+                }
+                .frame(maxWidth: .infinity)
+            }
+        }
+        .padding(1)
+    }
+    
+    private func chordLabel(_ ev: ChordEvent) -> String {
+        if ev.isRest { return "•" }
+        // Use effective key for the current section
+        let effectiveKey = section?.effectiveKey(songKey: song.keySig, songTransposition: song.transposition) ?? song.keySig.transposed(semitones: song.transposition)
+        // Transpose the chord for display if in chord mode
+        let displayChord = cellDisplayMode != .roman ? Chord(
+            root: ev.chord.root.transposed(semitones: song.transposition),
+            quality: ev.chord.quality,
+            flags: ev.chord.flags,
+            alterations: ev.chord.alterations,
+            bass: ev.chord.bass?.transposed(semitones: song.transposition)
+        ) : ev.chord
+        let name = displayChord.displayName(preferSharps: effectiveKey.preferSharps, capo: song.capo, showShapesWithCapo: false)
+        let roman = Roman.roman(for: ev.chord, in: effectiveKey)
+        switch cellDisplayMode {
+        case .chord: return name
+        case .roman: return roman
+        case .both: return "\(roman)/\(name)"
+        }
+    }
+    
+    private func cellColour(for ev: ChordEvent) -> Color {
+        guard colourByFunctionSetting && !ev.isRest else { return .accentColor }
+        // Use effective key for the current section
+        let effectiveKey = section?.effectiveKey(songKey: song.keySig, songTransposition: song.transposition) ?? song.keySig.transposed(semitones: song.transposition)
+        let offset = (ev.chord.root.rawValue - effectiveKey.tonic.rawValue + 12) % 12
+        let (idx, _) = Roman.degree(for: offset, mode: effectiveKey.mode)
+        let palette: [Color] = [.blue, .green, .orange, .purple, .red, .teal, .pink]
+        return palette[idx % palette.count]
     }
 }
 
@@ -920,11 +1322,18 @@ struct AddSectionView: View {
                         ForEach(song.blueprints) { blueprint in
                             Button(action: {
                                 selectedBlueprint = blueprint
-                                displayName = blueprint.name
+                                displayName = blueprint.name.replacingOccurrences(of: " (Custom)", with: "")
                             }) {
                                 HStack {
                                     VStack(alignment: .leading) {
-                                        Text(blueprint.name)
+                                        HStack(spacing: 4) {
+                                            Text(blueprint.name)
+                                            if blueprint.name.contains("(Custom)") {
+                                                Image(systemName: "star.fill")
+                                                    .font(.caption)
+                                                    .foregroundColor(.orange)
+                                            }
+                                        }
                                             .foregroundColor(.primary)
                                         Text("\(blueprint.bars) bars, \(blueprint.resolution.label)")
                                             .font(.caption)

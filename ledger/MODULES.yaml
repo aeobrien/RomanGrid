@@ -9,7 +9,7 @@ modules:
     project: RomanGrid
     subsystem: Library & Data
     name: App shell and song library
-    capability: Boots the SwiftData-backed app and provides the root navigation for browsing, creating, duplicating, importing, exporting, and opening songs.
+    capability: Boots the SwiftData-backed app and provides the root navigation for browsing, creating, duplicating, importing, exporting, and navigating into song editors via `NavigationLink`.
     status: working
     approach: Uses a SwiftUI TabView rooted in SwiftData queries and file import/export actions to drive the song list and top-level navigation.
     tech: [SwiftUI, SwiftData, UniformTypeIdentifiers, Xcode]

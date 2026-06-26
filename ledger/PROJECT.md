@@ -7,6 +7,7 @@ Music theory app for chord charts. Users enter chords and a key, and the app con
 Stalled
 
 ## Status
+**Lane:** personal
 **Current state:** Stalled on UI decisions
 **Last updated:** 2026-04-04
 

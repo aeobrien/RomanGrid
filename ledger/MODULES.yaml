@@ -1,0 +1,177 @@
+project_shape:
+  scale: small
+  has_subsystem_layer: false
+  expected_modules: "5-8"
+  kind: product
+
+modules:
+  - id: romangrid.library-data.app-shell-song-library
+    project: RomanGrid
+    subsystem: Library & Data
+    name: App shell and song library
+    capability: Boots the SwiftData-backed app and provides the root navigation for browsing, creating, duplicating, importing, exporting, and opening songs.
+    status: working
+    approach: Uses a SwiftUI TabView rooted in SwiftData queries and file import/export actions to drive the song list and top-level navigation.
+    tech: [SwiftUI, SwiftData, UniformTypeIdentifiers, Xcode]
+    io:
+      in: "User taps plus/import/export/navigation actions; persisted Song records from SwiftData"
+      out: "Opened song editors, created/deleted Song records, launched JSON import/export flows"
+    code_refs:
+      - RomanGrid/RomanGridApp.swift
+      - RomanGrid/RootView.swift
+      - RomanGrid/SongListView.swift
+      - RomanGrid/ContentView.swift
+    known_gaps:
+      - "SettingsView is still a placeholder and explicitly says triplets and per-section tempo/time signatures are planned later."
+      - "ContentView.swift is still the default Hello World scaffold and appears unused."
+      - "There are effectively no real tests covering app shell behavior."
+    match_keywords: [swiftui app shell, song library, document import export, swiftdata navigation, music app library]
+
+  - id: romangrid.library-data.persistence-interchange
+    project: RomanGrid
+    subsystem: Library & Data
+    name: Song persistence and interchange
+    capability: Defines the persisted song, section, chord, and lyrics data model and serializes songs to and from a portable JSON bundle.
+    status: partial
+    approach: Stores the domain model with SwiftData @Model types and maps it through Codable DTO mirrors for JSON import/export.
+    tech: [SwiftData, Foundation, Codable, FileDocument]
+    io:
+      in: "Song, SectionBlueprint, SectionInstance, ChordEvent, LyricsSection, and LyricsLine model data; JSON files"
+      out: "Persisted local store records and ExportSong JSON bundles"
+    code_refs:
+      - RomanGrid/Models.swift
+      - RomanGrid/ExportImport.swift
+      - RomanGrid/RomanGridApp.swift
+    known_gaps:
+      - "RomanGridApp deletes the existing store and recreates it if ModelContainer initialization fails, which can drop user data on migration errors."
+      - "SongDTO does not export song.transposition, so that state is lost across export/import."
+      - "SectionInstanceDTO and ExportSong omit isLinked, ownBlueprint, and structured lyricsData, so custom section copies and timed lyrics are not fully preserved."
+      - "Import/export has no visible validation or compatibility tests."
+    match_keywords: [swiftdata persistence, song schema, json export import, codable dto, local document format]
+
+  - id: romangrid.harmony-engine.chord-theory-roman-analysis
+    project: RomanGrid
+    subsystem: Harmony Engine
+    name: Chord theory and Roman numeral engine
+    capability: Parses chord symbols, transposes pitches and chords, infers scale-degree function by mode, and renders Roman numeral labels.
+    status: partial
+    approach: Implements custom Swift enums and structs for pitch classes, chord qualities, a regex-based parser, and a modal Roman numeral mapper.
+    tech: [Foundation, NSRegularExpression, Swift]
+    io:
+      in: "Chord text, PitchClass values, Chord structs, KeySignature values, transposition offsets"
+      out: "Parsed Chord values, display chord names, effective keys, and Roman numeral strings"
+    code_refs:
+      - RomanGrid/ChordTheory.swift
+      - RomanGrid/Models.swift
+    known_gaps:
+      - "The parser is explicitly described as pragmatic and is not backed by meaningful automated tests."
+      - "KeySignature.preferSharps uses a rough heuristic and notes that it can be refined later."
+      - "Roman degree selection uses heuristics and tie-break rules, so enharmonic edge cases may be unstable."
+    match_keywords: [chord parser, roman numeral analysis, modal harmony, transposition engine, music theory]
+
+  - id: romangrid.composition-editor.chord-builder
+    project: RomanGrid
+    subsystem: Composition Editor
+    name: Chord construction workflow
+    capability: Lets the user build chords from root, quality, seventh, inversion, bass, and advanced flags, then apply them into an editor cell.
+    status: partial
+    approach: Uses a multi-stage SwiftUI chord builder with picker-driven state, auto-quality inference from the current key, and an advanced options sheet.
+    tech: [SwiftUI, AppStorage, Swift]
+    io:
+      in: "Selected grid cell, effective key, user picker selections, current Chord state"
+      out: "Constructed Chord values and apply/delete/rest actions sent back to the editor"
+    code_refs:
+      - RomanGrid/ChordBuilder.swift
+      - RomanGrid/ChordTheory.swift
+    known_gaps:
+      - "ledger/PROJECT.md says the project is stalled on UI decisions, including chord builder layout and interaction patterns."
+      - "The builder relies on extensive print-based debug logging that is still present in production code."
+      - "Behavior such as auto-quality selection is described in FIXES_SUMMARY.md but has no automated regression coverage."
+    match_keywords: [chord builder, harmonic input ui, slash chord editor, auto quality selection, swiftui music editor]
+
+  - id: romangrid.composition-editor.section-grid-editing
+    project: RomanGrid
+    subsystem: Composition Editor
+    name: Section grid editing
+    capability: Edits one section blueprint as a time grid with drag-to-extend, cell selection, chord placement, rest filling, and overlap cleanup.
+    status: partial
+    approach: Renders per-bar LazyVGrid cells in SwiftUI and mutates ChordEvent spans directly, including absolute-beat bookkeeping and duplicate cleanup.
+    tech: [SwiftUI, SwiftData, AppStorage, Swift]
+    io:
+      in: "SectionBlueprint events, Song timing/key data, tap and drag gestures, chord builder callbacks"
+      out: "Updated ChordEvent spans, rests, selected cells, and grid display state"
+    code_refs:
+      - RomanGrid/SectionGridEditor.swift
+      - RomanGrid/ChordBuilder.swift
+      - RomanGrid/Models.swift
+      - FIXES_SUMMARY.md
+    known_gaps:
+      - "This area still depends on manual cleanup and debug logging for duplicate and overlap handling."
+      - "The file contains several editor state variables that are unused or only partially wired, which suggests unfinished interaction paths."
+      - "Regression scenarios are documented in FIXES_SUMMARY.md but not implemented as tests."
+    match_keywords: [grid chord editor, drag to extend, event span editing, section blueprint editor, timeline grid]
+
+  - id: romangrid.composition-editor.track-arrangement-editing
+    project: RomanGrid
+    subsystem: Composition Editor
+    name: Track and arrangement editing
+    capability: Builds the song structure from reusable sections, edits section order and customization, and drives the full-track grid editor.
+    status: partial
+    approach: Combines SwiftUI list-based arrangement management with a section-aware track editor that reuses blueprint data, supports linked or custom sections, and offers resolution/key/bar controls.
+    tech: [SwiftUI, SwiftData, AppStorage, NSItemProvider]
+    io:
+      in: "Song blueprints and arrangement data, reorder gestures, section commands, chord builder actions"
+      out: "Updated arrangement order, inserted or duplicated sections, custom section copies, and edited track content"
+    code_refs:
+      - RomanGrid/TrackEditor.swift
+      - RomanGrid/SectionArrangementView.swift
+      - RomanGrid/ArrangementView.swift
+      - RomanGrid/SongEditorView.swift
+      - RomanGrid/Models.swift
+    known_gaps:
+      - "ArrangementView still contains stubs for pushing blueprint changes and editing lyrics, indicating overlapping legacy UI paths."
+      - "Project docs still call out unresolved UI decisions as the main blocker."
+      - "There is no automated coverage for section linking, custom copy behavior, reordering, or resolution changes."
+    match_keywords: [arrangement editor, section sequencer, track editor, reusable song sections, section customization]
+
+  - id: romangrid.performance-lyrics.lyrics-authoring-assignment
+    project: RomanGrid
+    subsystem: Performance & Lyrics
+    name: Lyrics authoring and assignment
+    capability: Attaches lyric lines to bars and beats inside a section and offers a song-wide assignment workflow for distributing text across arranged sections.
+    status: partial
+    approach: Stores structured lyrics per section in SwiftData and edits them through SwiftUI forms, beat grids, and a global assignment sheet.
+    tech: [SwiftUI, SwiftData, Foundation]
+    io:
+      in: "Section text, bar and beat selections, song arrangement, existing LyricsSection data"
+      out: "Updated LyricsLine records attached to section instances"
+    code_refs:
+      - RomanGrid/LyricsEditor.swift
+      - RomanGrid/GlobalLyricsEditor.swift
+      - RomanGrid/Models.swift
+      - RomanGrid/TrackEditor.swift
+    known_gaps:
+      - "GlobalLyricsEditor does not read the actual text selection; getSelectedText currently falls back to the first non-empty line."
+      - "Assignments track NSRange metadata but save logic only writes plain text to a target bar."
+      - "Song-wide save clears existing lyrics before reapplying assignments, which makes the workflow brittle."
+    match_keywords: [lyrics editor, beat aligned lyrics, section lyric assignment, lyric mapping, swiftui text annotation]
+
+  - id: romangrid.performance-lyrics.song-view-presentation
+    project: RomanGrid
+    subsystem: Performance & Lyrics
+    name: Song view presentation
+    capability: Shows arranged sections in a read-only performance view with Roman numerals or chord names, section key overrides, lyrics, and live transposition controls.
+    status: working
+    approach: Renders section cards and chord grids in SwiftUI using the theory engine for labels and colors, with lyrics overlaid per bar.
+    tech: [SwiftUI, AppStorage, Swift]
+    io:
+      in: "Arranged song data, section key overrides, lyrics data, display mode choices, transposition changes"
+      out: "A read-only song chart optimized for viewing and transposing during use"
+    code_refs:
+      - RomanGrid/SongViewMode.swift
+      - RomanGrid/ChordTheory.swift
+      - RomanGrid/Models.swift
+    known_gaps:
+      - "View mode mutates song.transposition directly, so presentation state is coupled to persisted editing state."
+      - "There is no playback, metronome sync, or dedicated performance-mode test coverage."
+    match_keywords: [performance view, chord chart display, roman numeral chart, live transposition, read only song view]

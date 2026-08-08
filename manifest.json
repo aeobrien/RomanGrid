@@ -1,0 +1,23 @@
+{
+  "capture_finished_at_utc": "2026-08-08T03:22:54Z",
+  "capture_started_at_utc": "2026-08-08T03:22:44Z",
+  "captured_at_utc": "2026-08-08T03:22:44Z",
+  "captured_byte_estimate": 81744425,
+  "captured_path_count": 2260,
+  "consistency_retry_count": 0,
+  "excluded": [],
+  "github_hard_limit_bytes": 100000000,
+  "guardian_version": "2.0-sidecar",
+  "head_state": "symbolic",
+  "host": "aidans-laptop",
+  "racy_capture": false,
+  "repository_id": "RomanGrid-0223cfc77a73",
+  "schema_version": 1,
+  "snapshot_blob_threshold_bytes": 94371840,
+  "snapshot_consistency": "stable",
+  "source_branch": "main",
+  "source_head_oid": "e49ea4423e688bca5054af4276f7fe08ec12f0c3",
+  "source_index_sha256": "b16c6f79cdb09a2082dcb409713fc8adcd52a0a9851d00cb7b565960df1efd7b",
+  "source_path": "/Users/aidan/Dev/RomanGrid",
+  "upstream_observed": "origin/main"
+}

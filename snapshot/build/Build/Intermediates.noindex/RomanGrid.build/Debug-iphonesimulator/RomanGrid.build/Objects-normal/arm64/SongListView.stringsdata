@@ -1,0 +1,56 @@
+{
+  "source": "/Users/aidan/Documents/XCode/RomanGrid/RomanGrid/SongListView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Songs",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 38
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ • %@",
+        "location": {
+          "startingColumn": 38,
+          "startingLine": 26
+        }
+      },
+      {
+        "comment": "",
+        "key": "Export JSON",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 32
+        }
+      },
+      {
+        "comment": "",
+        "key": "Duplicate",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 33
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete",
+        "location": {
+          "startingColumn": 93,
+          "startingLine": 34
+        }
+      },
+      {
+        "comment": "",
+        "key": "Import",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 41
+        }
+      }
+    ]
+  },
+  "version": 1
+}

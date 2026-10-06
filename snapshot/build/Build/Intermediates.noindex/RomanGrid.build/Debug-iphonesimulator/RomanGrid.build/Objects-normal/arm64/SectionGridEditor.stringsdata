@@ -1,0 +1,264 @@
+{
+  "source": "/Users/aidan/Documents/XCode/RomanGrid/RomanGrid/SectionGridEditor.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "%@ • %lld bars",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 33
+        }
+      },
+      {
+        "comment": "",
+        "key": "Auto-extend",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 36
+        }
+      },
+      {
+        "comment": "",
+        "key": "To end of bar",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 37
+        }
+      },
+      {
+        "comment": "",
+        "key": "To end of next bar",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 38
+        }
+      },
+      {
+        "comment": "",
+        "key": "Fill gaps",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 43
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clean",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 50
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ • %lld/%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 66
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ %@",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 69
+        }
+      },
+      {
+        "comment": "",
+        "key": "Display",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 87
+        }
+      },
+      {
+        "comment": "",
+        "key": "B%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 244
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit %@",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 318
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete %@",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 322
+        }
+      },
+      {
+        "comment": "",
+        "key": "Extend to end of bar",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 326
+        }
+      },
+      {
+        "comment": "",
+        "key": "Extend to end of next bar",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 327
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create chord from selection (%lld cells)",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 332
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add chord here",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 337
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add rest here",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 341
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clear selection",
+        "location": {
+          "startingColumn": 24,
+          "startingLine": 347
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit Event",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 763
+        }
+      },
+      {
+        "comment": "",
+        "key": "This is a Rest",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 789
+        }
+      },
+      {
+        "comment": "",
+        "key": "Chord (e.g. Am7, G/B, Fadd9, C7#11)",
+        "location": {
+          "startingColumn": 23,
+          "startingLine": 784
+        }
+      },
+      {
+        "comment": "",
+        "key": "Parse & Apply",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 785
+        }
+      },
+      {
+        "comment": "",
+        "key": "Length",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 794
+        }
+      },
+      {
+        "comment": "",
+        "key": "Info",
+        "location": {
+          "startingColumn": 17,
+          "startingLine": 806
+        }
+      },
+      {
+        "comment": "",
+        "key": "Close",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 766
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 769
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cells: %lld",
+        "location": {
+          "startingColumn": 21,
+          "startingLine": 795
+        }
+      },
+      {
+        "comment": "",
+        "key": "To end of bar",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 796
+        }
+      },
+      {
+        "comment": "",
+        "key": "To end of next bar",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 799
+        }
+      },
+      {
+        "comment": "",
+        "key": "Starts at: bar %lld, cell %lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 809
+        }
+      },
+      {
+        "comment": "",
+        "key": "Roman: %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 813
+        }
+      },
+      {
+        "comment": "",
+        "key": "Name: %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 821
+        }
+      }
+    ]
+  },
+  "version": 1
+}

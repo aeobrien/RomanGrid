@@ -1,0 +1,376 @@
+{
+  "source": "/Users/aidan/Documents/XCode/RomanGrid/RomanGrid/ChordBuilder.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "ROOT",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 64
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 187
+        }
+      },
+      {
+        "comment": "",
+        "key": "QUALITY",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 74
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 212
+        }
+      },
+      {
+        "comment": "",
+        "key": "7TH",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 100
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 226
+        }
+      },
+      {
+        "comment": "",
+        "key": "INVERSION",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 110
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 242
+        }
+      },
+      {
+        "comment": "",
+        "key": "BASS",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 120
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 16,
+          "startingLine": 255
+        }
+      },
+      {
+        "comment": "",
+        "key": "-",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 200
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ - %@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 203
+        }
+      },
+      {
+        "comment": "",
+        "key": "-",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 213
+        }
+      },
+      {
+        "comment": "",
+        "key": "Maj",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 214
+        }
+      },
+      {
+        "comment": "",
+        "key": "min",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 215
+        }
+      },
+      {
+        "comment": "",
+        "key": "dim",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 216
+        }
+      },
+      {
+        "comment": "",
+        "key": "aug",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 217
+        }
+      },
+      {
+        "comment": "",
+        "key": "sus2",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 218
+        }
+      },
+      {
+        "comment": "",
+        "key": "sus4",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 219
+        }
+      },
+      {
+        "comment": "",
+        "key": "-",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 230
+        }
+      },
+      {
+        "comment": "",
+        "key": "7",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 231
+        }
+      },
+      {
+        "comment": "",
+        "key": "M7",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 232
+        }
+      },
+      {
+        "comment": "",
+        "key": "m7",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 234
+        }
+      },
+      {
+        "comment": "",
+        "key": "Root",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 243
+        }
+      },
+      {
+        "comment": "",
+        "key": "1st",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 244
+        }
+      },
+      {
+        "comment": "",
+        "key": "2nd",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 245
+        }
+      },
+      {
+        "comment": "",
+        "key": "3rd",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 247
+        }
+      },
+      {
+        "comment": "",
+        "key": "Default",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 256
+        }
+      },
+      {
+        "comment": "",
+        "key": "/%@",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 258
+        }
+      },
+      {
+        "comment": "",
+        "key": "Rest",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 269
+        }
+      },
+      {
+        "comment": "",
+        "key": "",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 278
+        }
+      },
+      {
+        "comment": "",
+        "key": "Chords",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 279
+        }
+      },
+      {
+        "comment": "",
+        "key": "Roman",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 280
+        }
+      },
+      {
+        "comment": "",
+        "key": "Both",
+        "location": {
+          "startingColumn": 22,
+          "startingLine": 281
+        }
+      },
+      {
+        "comment": "",
+        "key": "Advanced Options",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 577
+        }
+      },
+      {
+        "comment": "",
+        "key": "Suspended",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 497
+        }
+      },
+      {
+        "comment": "",
+        "key": "Extensions",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 521
+        }
+      },
+      {
+        "comment": "",
+        "key": "Alterations",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 558
+        }
+      },
+      {
+        "comment": "",
+        "key": "Preview",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 565
+        }
+      },
+      {
+        "comment": "",
+        "key": "sus2",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 498
+        }
+      },
+      {
+        "comment": "",
+        "key": "sus4",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 509
+        }
+      },
+      {
+        "comment": "",
+        "key": "6",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 522
+        }
+      },
+      {
+        "comment": "",
+        "key": "9",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 533
+        }
+      },
+      {
+        "comment": "",
+        "key": "add9",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 545
+        }
+      },
+      {
+        "comment": "",
+        "key": "Alterations like ♭5, ♯5, ♭9, ♯9, ♯11, ♭13",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 559
+        }
+      },
+      {
+        "comment": "",
+        "key": "Done",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 580
+        }
+      }
+    ]
+  },
+  "version": 1
+}

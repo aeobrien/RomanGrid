@@ -1,0 +1,48 @@
+{
+  "source": "/Users/aidan/Documents/XCode/RomanGrid/RomanGrid/RootView.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Songs",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 8
+        }
+      },
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 10
+        }
+      },
+      {
+        "comment": "",
+        "key": "Settings",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 25
+        }
+      },
+      {
+        "comment": "",
+        "key": "Triplets and per-section tempo/time-sig are planned later.",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 21
+        }
+      },
+      {
+        "comment": "",
+        "key": "Colour-code by function (I/ii/V…)",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 20
+        }
+      }
+    ]
+  },
+  "version": 1
+}

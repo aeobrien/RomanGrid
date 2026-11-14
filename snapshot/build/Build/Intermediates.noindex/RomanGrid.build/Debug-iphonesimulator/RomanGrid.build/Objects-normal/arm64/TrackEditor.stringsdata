@@ -1,0 +1,304 @@
+{
+  "source": "/Users/aidan/Documents/XCode/RomanGrid/RomanGrid/TrackEditor.swift",
+  "tables": {
+    "Localizable": [
+      {
+        "comment": "",
+        "key": "Track Editor: %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 56
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Section",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 62
+        }
+      },
+      {
+        "comment": "",
+        "key": "Duplicate Current Section",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 63
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Bar to Section",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 65
+        }
+      },
+      {
+        "comment": "",
+        "key": "Remove Bar from Section",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 66
+        }
+      },
+      {
+        "comment": "",
+        "key": "Clean Track",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 68
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld bars",
+        "location": {
+          "startingColumn": 42,
+          "startingLine": 111
+        }
+      },
+      {
+        "comment": "",
+        "key": "Rename",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 143
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete",
+        "location": {
+          "startingColumn": 36,
+          "startingLine": 146
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unlink from Original",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 135
+        }
+      },
+      {
+        "comment": "",
+        "key": "Re-link to Original",
+        "location": {
+          "startingColumn": 43,
+          "startingLine": 139
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ • %lld/%lld",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 175
+        }
+      },
+      {
+        "comment": "",
+        "key": "%@ %@",
+        "location": {
+          "startingColumn": 26,
+          "startingLine": 198
+        }
+      },
+      {
+        "comment": "",
+        "key": "Unlinked",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 170
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld bars",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 187
+        }
+      },
+      {
+        "comment": "",
+        "key": "B%lld",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 265
+        }
+      },
+      {
+        "comment": "",
+        "key": "Edit %@",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 340
+        }
+      },
+      {
+        "comment": "",
+        "key": "Delete %@",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 343
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add chord here",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 347
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add rest here",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 350
+        }
+      },
+      {
+        "comment": "",
+        "key": "Dragging",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 404
+        }
+      },
+      {
+        "comment": "",
+        "key": "No sections in track",
+        "location": {
+          "startingColumn": 18,
+          "startingLine": 451
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add First Section",
+        "location": {
+          "startingColumn": 20,
+          "startingLine": 454
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add Section",
+        "location": {
+          "startingColumn": 30,
+          "startingLine": 977
+        }
+      },
+      {
+        "comment": "",
+        "key": "Use Existing Section",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 919
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create New Section Type",
+        "location": {
+          "startingColumn": 29,
+          "startingLine": 948
+        }
+      },
+      {
+        "comment": "",
+        "key": "Instance Details",
+        "location": {
+          "startingColumn": 25,
+          "startingLine": 969
+        }
+      },
+      {
+        "comment": "",
+        "key": "Create New Section Type",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 942
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld bars, %@",
+        "location": {
+          "startingColumn": 46,
+          "startingLine": 929
+        }
+      },
+      {
+        "comment": "",
+        "key": "Section Name",
+        "location": {
+          "startingColumn": 35,
+          "startingLine": 949
+        }
+      },
+      {
+        "comment": "",
+        "key": "Resolution",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 956
+        }
+      },
+      {
+        "comment": "",
+        "key": "Use Existing Section Instead",
+        "location": {
+          "startingColumn": 32,
+          "startingLine": 962
+        }
+      },
+      {
+        "comment": "",
+        "key": "Bars:",
+        "location": {
+          "startingColumn": 34,
+          "startingLine": 952
+        }
+      },
+      {
+        "comment": "",
+        "key": "%lld",
+        "location": {
+          "startingColumn": 37,
+          "startingLine": 953
+        }
+      },
+      {
+        "comment": "",
+        "key": "Display Name",
+        "location": {
+          "startingColumn": 31,
+          "startingLine": 970
+        }
+      },
+      {
+        "comment": "",
+        "key": "Cancel",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 980
+        }
+      },
+      {
+        "comment": "",
+        "key": "Add",
+        "location": {
+          "startingColumn": 28,
+          "startingLine": 983
+        }
+      }
+    ]
+  },
+  "version": 1
+}
